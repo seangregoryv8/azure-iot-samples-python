@@ -5,16 +5,22 @@ import random
 import time
 import os
 from azure.iot.device import IoTHubDeviceClient, Message, MethodResponse
+from grove.grove_temperature_humidity_aht20 import GroveTemperatureHumidityAHT20
+from grove.i2c import Bus
+
+bus = Bus(4)
+address = 0x38
+
 
 # The device connection string to authenticate the device with your IoT hub.
 # Using the Azure CLI:
 # az iot hub device-identity show-connection-string --hub-name {YourIoTHubName} --device-id MyNodeDevice --output table
-CONNECTION_STRING = os.getenv("IOTHUB_DEVICE_CONNECTION_STRING")
+CONNECTION_STRING = "HostName=My-Cool-Hub-v2.azure-devices.net;DeviceId=device-1;SharedAccessKey=ymDhB98PI7HEqVU1yGENudodZl33sdwuMJP3YXK4vwU="
 
 # Define the JSON message to send to IoT Hub.
 TEMPERATURE = 20.0
 HUMIDITY = 60
-MSG_TXT = '{{"temperature": {temperature},"humidity": {humidity}}}'
+MSG_TXT = '{{"temperature": {temperature}, "humidity": {humidity}}}'
 
 INTERVAL = 1
 
@@ -53,6 +59,7 @@ def create_client():
     return client
 
 
+
 def run_telemetry_sample(client):
     # This sample will send temperature telemetry every second
     print("IoT Hub device sending periodic messages")
@@ -60,9 +67,9 @@ def run_telemetry_sample(client):
     client.connect()
 
     while True:
+        sensor = GroveTemperatureHumidityAHT20()
+        temperature, humidity = sensor.read()
         # Build the message with simulated telemetry values.
-        temperature = TEMPERATURE + (random.random() * 15)
-        humidity = HUMIDITY + (random.random() * 20)
         msg_txt_formatted = MSG_TXT.format(temperature=temperature, humidity=humidity)
         message = Message(msg_txt_formatted)
 
